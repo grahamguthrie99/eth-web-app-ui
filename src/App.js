@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
+import abi from './utils/PumpPortal.json';
+import { ethers } from "ethers";
 import './App.css';
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
+  const contractAddress = "0xFB3323b509B188046956F7064E5F5a9daD20D9D0";
+  const contractABI = abi.abi;
   
   const checkIfWalletIsConnected = async () => {
     try {
@@ -50,6 +54,33 @@ const App = () => {
     }
   }
 
+  const pump = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const pumpPortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        let count = await pumpPortalContract.getTotalPumps();
+        console.log("Retrieved total pump count...", count.toNumber());
+        const txn = await pumpPortalContract.pump();
+        console.log("Mining...", txn.hash);
+
+        await txn.wait();
+        console.log("Mined -- ", txn.hash);
+
+        count = await pumpPortalContract.getTotalPumps();
+        console.log("Retrieved total wave count...", count.toNumber());
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error)
+    }
+}
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, [])
@@ -62,11 +93,11 @@ const App = () => {
         </div>
 
         <div className="bio">
-          I am Graham... Connect your Ethereum wallet and wave at me!
+          I am Graham... Connect your Ethereum wallet and share your pump!
         </div>
 
-        <button className="waveButton" onClick={null}>
-          Wave at Me
+        <button className="waveButton" onClick={pump}>
+          Send a Pump 💪
         </button>
         
         {/*
