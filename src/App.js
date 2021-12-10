@@ -5,7 +5,8 @@ import './App.css';
 
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
-  const contractAddress = "0xFB3323b509B188046956F7064E5F5a9daD20D9D0";
+  const [allPumps, setAllPumps] = useState([]);
+  const contractAddress = "0x3187Dc41cda658FfE54C401b4D144B486a20D2c0";
   const contractABI = abi.abi;
   
   const checkIfWalletIsConnected = async () => {
@@ -65,7 +66,7 @@ const App = () => {
 
         let count = await pumpPortalContract.getTotalPumps();
         console.log("Retrieved total pump count...", count.toNumber());
-        const txn = await pumpPortalContract.pump();
+        const txn = await pumpPortalContract.pump("this is a message");
         console.log("Mining...", txn.hash);
 
         await txn.wait();
@@ -73,6 +74,7 @@ const App = () => {
 
         count = await pumpPortalContract.getTotalPumps();
         console.log("Retrieved total wave count...", count.toNumber());
+        getAllPumps();
       } else {
         console.log("Ethereum object doesn't exist!");
       }
@@ -81,35 +83,72 @@ const App = () => {
     }
 }
 
+const getAllPumps = async () => {
+  try {
+    const { ethereum } = window;
+    if (ethereum) {
+      const provider = new ethers.providers.Web3Provider(ethereum);
+      const signer = provider.getSigner();
+      const pumpPortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+
+      const pumps = await pumpPortalContract.getAllPumps();
+      
+
+      let pumpsCleaned = [];
+      pumps.forEach(pump => {
+        pumpsCleaned.push({
+          address: pump.pumper,
+          timestamp: new Date(pump.timestamp * 1000),
+          message: pump.message
+        });
+      });
+
+  
+      setAllPumps(pumpsCleaned);
+    } else {
+      console.log("Ethereum object doesn't exist!")
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
   useEffect(() => {
     checkIfWalletIsConnected();
   }, [])
   
   return (
     <div className="mainContainer">
-      <div className="dataContainer">
-        <div className="header">
+    <div className="dataContainer">
+      <div className="header">
         👋 Hey there!
-        </div>
-
-        <div className="bio">
-          I am Graham... Connect your Ethereum wallet and share your pump!
-        </div>
-
-        <button className="waveButton" onClick={pump}>
-          Send a Pump 💪
-        </button>
-        
-        {/*
-        * If there is no currentAccount render this button
-        */}
-        {!currentAccount && (
-          <button className="waveButton" onClick={connectWallet}>
-            Connect Wallet
-          </button>
-        )}
       </div>
+
+      <div className="bio">
+        I am Graham... Connect your Ethereum wallet and wave at me!
+      </div>
+
+      <button className="waveButton" onClick={pump}>
+        Shoot me a pump
+      </button>
+
+      {!currentAccount && (
+        <button className="waveButton" onClick={connectWallet}>
+          Connect Wallet
+        </button>
+      )}
+
+      {allPumps.map((pump, index) => {
+        return (
+          <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
+            <div>Address: {pump.address}</div>
+            <div>Time: {pump.timestamp.toString()}</div>
+            <div>Message: {pump.message}</div>
+          </div>)
+      })}
     </div>
+  </div>
   );
 }
 
