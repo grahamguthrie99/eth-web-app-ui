@@ -6,7 +6,7 @@ import './App.css';
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState("");
   const [allPumps, setAllPumps] = useState([]);
-  const contractAddress = "0x3187Dc41cda658FfE54C401b4D144B486a20D2c0";
+  const contractAddress = "0x83F67d659eBBb885f2445B224E0fbc09fA5a1bd2";
   const contractABI = abi.abi;
   
   const checkIfWalletIsConnected = async () => {
