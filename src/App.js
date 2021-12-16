@@ -66,7 +66,7 @@ const App = () => {
 
         let count = await pumpPortalContract.getTotalPumps();
         console.log("Retrieved total pump count...", count.toNumber());
-        const txn = await pumpPortalContract.pump("this is a message");
+        const txn = await pumpPortalContract.pump("this is a message", { gasLimit: 300000 });
         console.log("Mining...", txn.hash);
 
         await txn.wait();
